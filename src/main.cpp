@@ -1,123 +1,173 @@
-/**
- * Blink
- *
- * Turns on an LED on for one second,
- * then off for one second, repeatedly.
- */
-#include "Arduino.h"
-#include "SPI.h"
-#include "EEPROM.h"
-#include "RH_RF69.h"
-// #include <Bouton.h>
-#include "LowPower.h"
-#include "LoRa.h"
-#include "T2WhisperNode.h"
 
-#ifndef LED
-#define LD1 
-#endif
 
-// Use pin 4 as wake up pin
-const int wakeUpPin = 4;
-const int LED_BLUE = 6;
-const int LED_RED  = 9;
-void wakeUp()
-{
-    // Just a handler for the pin interrupt.
+
+
+// Definition de la taille max du payload
+#define T2_MESSAGE_MAX_DATA_LEN 15
+#include <Arduino.h>
+#include <RH_RF95.h>
+#include <T2WhisperNode.h>
+#include <LoRa.h>
+
+#include <Button.h>
+
+////////////////////////////////////////////
+/// Configuration WhisperNode
+int myNetID = 1; // Definition du réseau
+int myID = 0; // ID du WhisperNode
+int mySerialNumber = 16; // Numero de série A CHANGER !!!
+////////////////////////////////////////////
+////////////////////////////////////////////
+
+// Radio
+uint8_t radioBuf[(T2_MESSAGE_HEADERS_LEN + T2_MESSAGE_MAX_DATA_LEN)];
+T2Message myMsg;
+
+// Mes 2 boutons
+Button myButtonD(T2_WPN_BTN_2);
+Button myButtonG(T2_WPN_BTN_1);
+
+// Tableau stockant les valeurs du payload
+char *array[10];
+int arrayint[10];
+
+// fonction permettant d'analyser le payload d'une trame
+// stocke les valeurs dans le tableau arrayint
+// premier parametre dans arrayint[0], deuxième dans arrayint[1] etc...
+int parseString (char *s) {
+    int i = 0;
+    char *p = strtok (s, ";");
+    while ((p != NULL) & (i<9)) {
+        array[i++] = p;
+        p = strtok (NULL, ";");
+    }
+    while (i<10) array[i++] = NULL;
+    for (i = 0; i < 10; ++i) {
+      if (array[i]!=NULL) {
+        arrayint[i]=atoi(array[i]);
+        }
+    }
+    return 0;
 }
 
-T2Flash flash;
+int sendLORA(int idx,int src, int dst, int sdx, int cmd, const char *data, int len) {
+	uint8_t radioBufLen = 0;
 
-void setup()
-{
-  // initialize LED digital pin as an output.
-  Serial.begin(9600);
-  // Bouton lol = new Bouton(0);
-  LoRa.setPins(10,7,2);
-  if (!LoRa.begin(868E6)) {
-    Serial.println("Starting LoRa failed!");
-    while (1);
-  } 
-}
-void loop()
+  // Q4 A completer
+  // ...
+  // T2Message myMsg;
+  // myMsg.src = 2 ;
+  // myMsg.dst = 1 ;
+  // ...
+  // myMsg.data[0] = ‘1’;
+  // myMsg.data[1] = ‘ ;'
+  // myMsg.len = '2' ;
 
-{
-
-  LoRa.sleep();
-  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_4S, ADC_OFF, BOD_OFF); 
-  // // LowPower.powerDown(SLEEP_FOREVER, ADC_ON, BOD_OFF); 
-  // // LowPower.powerDown(SLEEP_FOREVER, ADC_OFF, BOD_ON); 
-  // // LowPower.powerDown(SLEEP_FOREVER, ADC_ON, BOD_ON); 
-
-  // // LowPower.powerStandby(SLEEP_FOREVER, ADC_OFF, BOD_OFF); 
-  // // LowPower.powerStandby(SLEEP_FOREVER, ADC_ON, BOD_OFF); 
-  // // LowPower.powerStandby(SLEEP_FOREVER, ADC_OFF, BOD_ON); 
-  // // LowPower.powerStandby(SLEEP_FOREVER, ADC_ON, BOD_ON); 
-
-  // // LowPower.powerSave(SLEEP_FOREVER, ADC_OFF, BOD_OFF, TIMER2_OFF  ); 
-  // // LowPower.powerSave(SLEEP_FOREVER, ADC_ON, BOD_OFF, TIMER2_OFF  ); 
-  // // LowPower.powerSave(SLEEP_FOREVER, ADC_OFF, BOD_ON, TIMER2_OFF  ); 
-  // // LowPower.powerSave(SLEEP_FOREVER, ADC_OFF, BOD_OFF, TIMER2_ON  ); 
-  // // LowPower.powerSave(SLEEP_FOREVER, ADC_ON, BOD_ON, TIMER2_ON  ); 
-  
-  // // LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF); 
-  // // LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_ON); 
-  // // LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_ON, TWI_OFF); 
-  // // LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_ON, USART0_OFF, TWI_OFF); 
-  // // LowPower.idle(SLEEP_FOREVER, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_ON, USART0_ON, TWI_ON); 
-
-  // LoRa.sleep();
-  // flash.init(T2_WPN_FLASH_SPI_CS);
-  // flash.powerDown();
-  char radioBuf[10]={'0','1','2','3','4','5','6','7','8','9'};
-  digitalWrite(LED_BLUE, HIGH);
-  LoRa.setTxPower(2);
-  digitalWrite(14, HIGH);
-  Serial.print("Read pin A7 : ");
-  Serial.print((7.282 * analogRead(7)) / 1024);
-  Serial.print(" V");
-  digitalWrite(14, LOW);
-  for (size_t i = 0; i < 100; i++)
+  T2Message myMsg;
+  myMsg.idx = idx ;
+  myMsg.src = src ;
+  myMsg.dst = dst ;
+  myMsg.sdx = sdx ;
+  myMsg.cmd = cmd ;
+  for (int i = 0; i < len; i++)
   {
-    LoRa.beginPacket();
-    LoRa.write(radioBuf,10);
-    LoRa.endPacket();
-  }
-  delay(100);
-  digitalWrite(LED_BLUE, LOW);
+    const char* ptr = &data[i];
+    myMsg.data[i] = *ptr;
 
-  LoRa.sleep();
-  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF); 
-  // LowPower.powerDown(SLEEP_4S, ADC_OFF, BOD_OFF); 
-
-  digitalWrite(LED_RED, HIGH);
-  LoRa.setTxPower(20);
-  digitalWrite(14, HIGH);
-  Serial.print("Read pin A7 : ");
-  Serial.print((7.282 * analogRead(7)) / 1024);
-  Serial.print(" V");
-  digitalWrite(14, LOW);
-  for (size_t i = 0; i < 100; i++)
-  {
-    LoRa.beginPacket();
-    LoRa.write(radioBuf,10);
-    LoRa.endPacket();
-    
-    digitalWrite(14, HIGH);
-    Serial.print("Read pin A7 : ");
-    Serial.print((7.282 * analogRead(7)) / 1024);
-    Serial.print(" V");
-    digitalWrite(14, LOW);
+    Serial.print(ptr);
+    Serial.print(' ');
+    Serial.println(*ptr);
   }
-  delay(100);
-  digitalWrite(LED_RED, LOW);
+  myMsg.len = len ;
+
+
+  LoRa.beginPacket();
+  LoRa.write(radioBuf,radioBufLen);
+  LoRa.endPacket();
+  return 1;
 }
 
+char buf[10]; // Buffeur utilisé pour l'envois de la trame
+int len;      // longueur de la trame
+
+int sendGiveMeANodeID(){
+  // Q5 A completer
+  // ...
+  char* greeting = "Hello"; 
+  sendLORA(0x01, 0x00, 1,1,1,greeting,12);
+  return 0;
+}
+
+int sendGiveMeAChannelAndField(){
+  // Q9 a completer
+}
+
+int sendMyValue(int value){
+  // Q11 a completer
+
+}
+
+void setup() {
+    Serial.begin(9600);
+    Serial.println("Radio Init");
+    // Q2 Initialisation Puce LoRa
+    // ...
+    LoRa.setPins(10,7,2);
+    if (!LoRa.begin(868E6)) {
+      Serial.println("Starting LoRa failed!");
+      while (1);
+    }
+    Serial.println("LoRa started!");
+}
+
+char message[255]; //buffeur de reception d'un message
+uint8_t lmes; //longeur du message recu
+
+int receivLoRa(){
+  // Q6 Reception d'une trame et construction de l'objet myMsg.
+  // ...
+}
+
+int lol = 0;
+void loop() {
+  /// RECEPTION
+  // if (receivLoRa()==1) {
+  //     // Recoit on un ID ???
+  //     // Q7 Reception d'un ID
+  //     // tester les champs avec la bonne valeur.
+  //     if ((myMsg.idx == 0x00)&&(myMsg.dst==0x00)&&(myMsg.src==0x00)&&(myMsg.sdx==0x00)) {
+  //         parseString((char *) myMsg.data);
+  //         Serial.print("Reception d'un ID : ");
+  //         Serial.print(arrayint[0]);
+  //         Serial.print(" NETID : ");
+  //         Serial.print(arrayint[1]);
+  //         Serial.print(" au numero de serie : ");
+  //         Serial.println(arrayint[2]);
+
+  //     // Q7 puis si le numéro de série est le bon affecter myID
+  //     }
+
+  //     // Recoit on un Channel ???
+  //     // Q10 tester les champs avec la bonne valeur.
+  //     // puis afficher les valeurs
+  //     if ((myMsg.idx == 0x00)&&(myMsg.dst==0x00)&&(myMsg.src==0x00)&&(myMsg.sdx==0x00)) {
+  //     // Q10 a completer
+  //     }
+
+  //   }
+  //   /// FIN PARTIE RECEPTION
+  if(lol == 0 ) {
+
+    sendGiveMeANodeID();
+
+      Serial.println("J'ai besoin d'un ID");
+    lol++;
+  }
+  /// DEMANDE ID si Bouton droit appuyé
+  if (myButtonD.getNumber() >= 1) {
+      myID=0;myNetID=1;
+      Serial.println("J'ai besoin d'un ID");
+      sendGiveMeANodeID();
+  }
+}
 
