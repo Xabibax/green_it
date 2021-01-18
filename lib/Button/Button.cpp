@@ -15,7 +15,6 @@ void Button::check()
     j = millis();
   }
   lastval = val;
-  Serial.println("lol");
 }
 
 int Button::getNumber()

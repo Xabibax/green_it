@@ -69,17 +69,20 @@ int sendLORA(int idx,int src, int dst, int sdx, int cmd, const char *data, int l
   myMsg.dst = dst ;
   myMsg.sdx = sdx ;
   myMsg.cmd = cmd ;
+
+  Serial.println(data);
   for (int i = 0; i < len; i++)
   {
     const char* ptr = &data[i];
     myMsg.data[i] = *ptr;
 
-    Serial.print(ptr);
-    Serial.print(' ');
-    Serial.println(*ptr);
+    Serial.print(*ptr);
   }
   myMsg.len = len ;
+  Serial.println(' ');
 
+  myMsg.printMessage();
+  myMsg.getSerializedMessage(radioBuf, &radioBufLen);
 
   LoRa.beginPacket();
   LoRa.write(radioBuf,radioBufLen);
@@ -93,9 +96,9 @@ int len;      // longueur de la trame
 int sendGiveMeANodeID(){
   // Q5 A completer
   // ...
-  char* greeting = "Hello"; 
-  sendLORA(0x01, 0x00, 1,1,1,greeting,12);
-  return 0;
+  char* msg = "44"; 
+  int len = strlen(msg);
+  sendLORA(0x01, 0x00, 0x01, 0x01, 0x00, msg, len);
 }
 
 int sendGiveMeAChannelAndField(){
@@ -116,8 +119,9 @@ void setup() {
     if (!LoRa.begin(868E6)) {
       Serial.println("Starting LoRa failed!");
       while (1);
+    } else {
+      Serial.println("LoRa started!");
     }
-    Serial.println("LoRa started!");
 }
 
 char message[255]; //buffeur de reception d'un message
@@ -156,11 +160,11 @@ void loop() {
 
   //   }
   //   /// FIN PARTIE RECEPTION
-  if(lol == 0 ) {
+  if(lol < 1 ) {
 
     sendGiveMeANodeID();
 
-      Serial.println("J'ai besoin d'un ID");
+    Serial.println("J'ai besoin d'un ID");
     lol++;
   }
   /// DEMANDE ID si Bouton droit appuyé
