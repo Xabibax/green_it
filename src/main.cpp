@@ -15,7 +15,7 @@
 /// Configuration WhisperNode
 int myNetID = 1; // Definition du réseau
 int myID = 0; // ID du WhisperNode
-int mySerialNumber = 16; // Numero de série A CHANGER !!!
+int mySerialNumber = 4; // Numero de série A CHANGER !!!
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
@@ -55,13 +55,6 @@ int sendLORA(int idx,int src, int dst, int sdx, int cmd, const char *data, int l
 
   // Q4 A completer
   // ...
-  // T2Message myMsg;
-  // myMsg.src = 2 ;
-  // myMsg.dst = 1 ;
-  // ...
-  // myMsg.data[0] = ‘1’;
-  // myMsg.data[1] = ‘ ;'
-  // myMsg.len = '2' ;
 
   T2Message myMsg;
   myMsg.idx = idx ;
@@ -87,7 +80,7 @@ int sendLORA(int idx,int src, int dst, int sdx, int cmd, const char *data, int l
   LoRa.beginPacket();
   LoRa.write(radioBuf,radioBufLen);
   LoRa.endPacket();
-  return 1;
+  return 0;
 }
 
 char buf[10]; // Buffeur utilisé pour l'envois de la trame
@@ -96,9 +89,10 @@ int len;      // longueur de la trame
 int sendGiveMeANodeID(){
   // Q5 A completer
   // ...
-  char* msg = "44"; 
+  char* msg = "4"; 
   int len = strlen(msg);
-  sendLORA(0x01, 0x00, 0x01, 0x01, 0x00, msg, len);
+  sendLORA(myNetID, myID, 0x01, 0x01, 0x00, msg, len);
+  return 0;
 }
 
 int sendGiveMeAChannelAndField(){
@@ -130,6 +124,7 @@ uint8_t lmes; //longeur du message recu
 int receivLoRa(){
   // Q6 Reception d'une trame et construction de l'objet myMsg.
   // ...
+
 }
 
 int lol = 0;
