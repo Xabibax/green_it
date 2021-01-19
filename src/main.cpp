@@ -13,9 +13,9 @@
 
 ////////////////////////////////////////////
 /// Configuration WhisperNode
-int myNetID = 1; // Definition du réseau
+int myNetID = 2; // Definition du réseau
 int myID = 0; // ID du WhisperNode
-int mySerialNumber = 16; // Numero de série.
+int mySerialNumber = 1; // Numero de série.
 long int myChannel =0;
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -116,14 +116,15 @@ int receivLoRa(){
   int packetSize = LoRa.parsePacket();
   if (packetSize) {
     // received a packet
-    Serial.print("Received packet '");
+    Serial.println("Received packet '");
     // read packet
     while ((LoRa.available()) && (lmes<250)) {
       message[lmes++] = (char) LoRa.read();
     }
     message[lmes++] =0;
     myMsg.setSerializedMessage((uint8_t *) message, lmes);
-    myMsg.printMessage();
+    if (myMsg.idx == myNetID) 
+      myMsg.printMessage();
     return 1;
   }
   return -1;
